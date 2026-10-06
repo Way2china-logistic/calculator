@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор заказа из Китая — Way2China</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#DCCBA8;
+    --card:#FBF6EC;
+    --ink:#2B2016;
+    --ink-soft:#5A4B37;
+    --tape:#B23A2E;
+    --tape-dark:#8E2C22;
+    --gold:#A97C1F;
+    --line:#C9B78F;
+    --ok:#3C6B4A;
+    --font-display:'Fredoka', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.12) 0, transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(0,0,0,0.05) 0, transparent 40%);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 60px;
+  }
+  .wrap{max-width:940px;margin:0 auto;}
+
+  .masthead{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+  .masthead .logo-block{display:flex; align-items:center; gap:14px;}
+  .masthead .text-block{display:flex; flex-direction:column; gap:4px;}
+  .masthead img.logo{
+    height:58px;
+    border-radius:8px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  }
+  .masthead h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(22px,4vw,32px);
+    letter-spacing:0.2px;
+    margin:0;
+    line-height:1.15;
+    color:#E8362A;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  }
+  .masthead .sub{
+    font-size:13.5px;
+    color:var(--ink);
+    font-weight:600;
+    max-width:260px;
+    text-align:right;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap:22px;
+  }
+  @media (max-width:760px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:26px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  }
+
+  fieldset{border:none;padding:0;margin:0 0 22px;}
+  fieldset.collapsed{display:none;}
+  legend{
+    font-family:var(--font-display);
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+    padding:0;
+  }
+
+  .toggle-row{display:flex; gap:8px;}
+  .toggle-row label{
+    flex:1;
+    text-align:center;
+    padding:11px 10px;
+    border:1.5px solid var(--line);
+    border-radius:3px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:15px;
+    color:var(--ink-soft);
+    transition:border-color .15s, color .15s, background .15s;
+    user-select:none;
+  }
+  .toggle-row input{position:absolute; opacity:0; pointer-events:none;}
+  .toggle-row input:checked + label{
+    border-color:var(--tape);
+    color:var(--tape-dark);
+    background:#FBEAE7;
+  }
+
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input[type=number], .field input[type=text], .field select{
+    width:100%;
+    padding:10px 12px;
+    font-size:16px;
+    border:1.5px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+  }
+  .field input::placeholder{color:#A99B82; font-style:italic;}
+  .field input[type=number]:focus, .field select:focus{
+    outline:none;
+    border-color:var(--tape);
+  }
+  .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  .rate-row{display:flex; gap:12px;}
+  .rate-row .field{flex:1; margin-bottom:0;}
+  .pack-row{display:flex; gap:12px;}
+  .pack-row .field{margin-bottom:0;}
+  .pack-row .field.grow{flex:1.4;}
+  .pack-row .field.narrow{flex:1;}
+
+  .checkline{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border:1.5px dashed var(--line);
+    border-radius:3px;
+    font-size:14px;
+  }
+  .checkline input{width:17px;height:17px;accent-color:var(--tape);}
+  .checkline.disabled{opacity:.45;}
+
+  .receipt{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:26px 26px 30px;
+    font-family:'Source Sans 3', sans-serif;
+  }
+  .receipt::before, .receipt::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; height:14px;
+    background:
+      radial-gradient(circle at 8px 0, transparent 7px, var(--paper) 7.5px) top left/16px 14px repeat-x;
+  }
+  .receipt::before{top:-1px;}
+  .receipt::after{bottom:-1px; transform:rotate(180deg);}
+
+  .receipt h2{
+    font-family:var(--font-display);
+    font-size:15px;
+    letter-spacing:0.3px;
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    border-bottom:1px dashed var(--line);
+    padding-bottom:12px;
+  }
+
+  .line-item{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:14.5px;
+    padding:7px 0;
+    border-bottom:1px dotted var(--line);
+  }
+  .line-item.hidden-row{display:none;}
+  .line-item .amt{font-variant-numeric:tabular-nums; font-weight:600;}
+  .line-item .sub-note{font-size:11.5px; color:var(--ink-soft); display:block; margin-top:2px;}
+
+  .total-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:2.5px solid var(--ink);
+  }
+  .total-row .label{
+    font-family:var(--font-display);
+    font-size:16px;
+    letter-spacing:0.3px;
+  }
+  .total-row .amt{
+    font-family:var(--font-display);
+    font-size:34px;
+    font-weight:600;
+    color:var(--tape-dark);
+    font-variant-numeric:tabular-nums;
+  }
+  .total-row .amt.placeholder{
+    font-size:13px;
+    font-weight:400;
+    font-family:'Source Sans 3', sans-serif;
+    color:var(--ink-soft);
+  }
+
+  .stamp{
+    position:absolute;
+    top:18px; right:22px;
+    border:2.5px solid var(--tape);
+    color:var(--tape);
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:1px;
+    padding:5px 10px;
+    border-radius:6px;
+    transform:rotate(6deg);
+    opacity:0;
+    transition:opacity .2s;
+  }
+  .stamp.show{opacity:0.85;}
+
+  .warn{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--gold);
+    background:#FBF1DC;
+    border:1px solid #E4CE96;
+    border-radius:3px;
+    padding:9px 12px;
+  }
+  .warn.error{color:var(--tape-dark); background:#FBEAE7; border-color:#E7B9B2;}
+
+  .ruble-note{
+    margin-top:16px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    font-style:italic;
+  }
+
+  .codeword{
+    margin-top:18px;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:center;
+    border-top:1px dashed var(--line);
+    padding-top:14px;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:30px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  .step-title{font-family:var(--font-display);font-size:13px;letter-spacing:.6px;color:#E8362A;font-weight:600;margin:0 0 4px;text-transform:uppercase;}
+  .step-h{font-family:var(--font-display);font-size:22px;font-weight:600;margin:0 0 14px;color:var(--ink);}
+  .wpanel{margin-bottom:22px;}
+  .wtabs{display:flex;gap:8px;margin-bottom:14px;}
+  .wtab{flex:1;text-align:center;padding:10px 8px;border:1.5px solid var(--line);border-radius:3px;cursor:pointer;font-weight:600;font-size:15px;color:var(--ink-soft);background:transparent;font-family:inherit;}
+  .wtab.active{border-color:var(--tape);color:var(--tape-dark);background:#FBEAE7;}
+  .wtab .badge{display:inline-block;min-width:20px;padding:1px 6px;margin-left:6px;border-radius:10px;background:var(--tape);color:#fff;font-size:12px;line-height:18px;}
+  .wtab .badge.zero{display:none;}
+  .wlist{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;}
+  @media (max-width:760px){ .wlist{grid-template-columns:1fr;} }
+  .wcat{grid-column:1/-1;font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--ink-soft);margin:14px 0 2px;}
+  .wcat:first-child{margin-top:0;}
+  .witem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dotted var(--line);}
+  .witem .nm{font-size:15px;line-height:1.25;}
+  .witem .wt{font-size:12px;color:var(--ink-soft);display:block;margin-top:2px;}
+  .wstep{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .wstep button{width:34px;height:34px;border:1.5px solid var(--line);border-radius:3px;background:#fff;font-size:19px;line-height:1;color:var(--tape-dark);cursor:pointer;padding:0;font-family:inherit;}
+  .wstep input{width:44px;height:34px;text-align:center;font-size:16px;border:1.5px solid var(--line);border-radius:3px;background:#fff;color:var(--ink);font-family:inherit;padding:0;}
+  .wcustom{margin-top:16px;padding:12px;border:1.5px dashed var(--line);border-radius:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .wcustom .f{flex:1;min-width:110px;}
+  .wcustom label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .wcustom input{width:100%;height:36px;padding:0 10px;font-size:15px;border:1.5px solid var(--line);border-radius:3px;background:#fff;color:var(--ink);font-family:inherit;}
+  .wresult{margin-top:16px;padding:14px 16px;background:#FBEAE7;border-left:3px solid #E8362A;font-size:14px;line-height:1.45;}
+  .wresult b{font-family:var(--font-display);font-size:22px;color:var(--tape-dark);}
+  .wactions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .wbtn{padding:10px 16px;border-radius:3px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:inherit;border:1.5px solid var(--line);background:transparent;color:var(--ink-soft);}
+  .wbtn.go{background:#E8362A;border-color:#E8362A;color:#fff;}
+  .wnote{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.4;}
+  .mgr{display:block;text-align:center;margin-top:14px;padding:12px;background:#E8362A;color:#fff;border-radius:3px;font-weight:600;text-decoration:none;font-size:15px;}
+
+/* ===== РЕДИЗАЙН: редакторский стиль ===== */
+:root{
+  --paper:#EEE7DF; --card:#FFFDF9; --ink:#2B2016; --ink-soft:#6B5A4A;
+  --tape:#4A1820; --tape-dark:#4A1820; --line:#E0D3C2; --gold:#A97C1F;
+  --wine:#4A1820; --wine2:#6A2531; --cream:#EEE7DF; --red:#E8362A;
+  --font-display:'Lora', Georgia, serif;
+}
+body{
+  font-family:'Montserrat', system-ui, sans-serif;
+  background:var(--paper);
+  background-image:none;
+  padding:20px 14px 60px;
+}
+.wrap{max-width:980px;}
+
+/* шапка */
+.masthead{
+  background:var(--wine); border:none; border-radius:22px;
+  padding:26px 28px; margin-bottom:34px; position:relative; overflow:hidden;
+  box-shadow:0 14px 30px -14px rgba(74,24,32,.55);
+}
+.masthead::after{
+  content:""; position:absolute; right:-60px; top:-60px; width:220px; height:220px;
+  border-radius:50%; border:1px solid rgba(238,231,223,.18); box-shadow:0 0 0 28px rgba(238,231,223,.05);
+}
+.masthead .logo-block{gap:18px; position:relative; z-index:1;}
+.masthead img.logo{height:64px; border-radius:14px; box-shadow:0 0 0 3px rgba(238,231,223,.25);}
+.masthead h1{
+  font-family:var(--font-display); font-weight:600; color:var(--cream);
+  font-size:clamp(26px,4.6vw,40px); letter-spacing:-.2px; text-shadow:none;
+}
+.masthead h1 em{font-style:italic; font-weight:500; color:#F4B9B2;}
+.masthead .sub{
+  color:rgba(238,231,223,.78); font-weight:500; font-size:13px; letter-spacing:.4px;
+  max-width:none; text-align:left; text-transform:uppercase;
+}
+
+/* заголовки шагов */
+.step-head{display:flex; align-items:flex-end; gap:16px; margin:0 4px 16px;}
+.step-head .num{
+  font-family:var(--font-display); font-style:italic; font-weight:500;
+  font-size:64px; line-height:.8; color:var(--red);
+}
+.step-title{
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:2.4px;
+  color:var(--ink-soft); text-transform:uppercase; margin:0 0 4px;
+}
+.step-h{font-family:var(--font-display); font-weight:600; font-size:clamp(22px,3.6vw,30px); margin:0; color:var(--ink);}
+.step2{margin-top:44px;}
+
+/* карточки */
+.panel, .wpanel{
+  background:var(--card); border:1px solid var(--line); border-radius:22px;
+  padding:28px; box-shadow:0 10px 28px -18px rgba(74,24,32,.35);
+}
+.wpanel{margin-bottom:0;}
+
+/* вкладки */
+.wtabs{gap:6px; padding:5px; background:#F3ECE3; border-radius:999px; margin-bottom:20px;}
+.wtab{
+  border:none; border-radius:999px; padding:12px 10px; background:transparent;
+  font-family:'Montserrat',sans-serif; font-weight:600; font-size:14px; color:var(--ink-soft); transition:all .2s;
+}
+.wtab.active{background:var(--wine); color:var(--cream); box-shadow:0 6px 14px -6px rgba(74,24,32,.6);}
+.wtab .badge{background:var(--red); color:#fff;}
+.wtab.active .badge{background:var(--cream); color:var(--wine);}
+
+/* список товаров */
+.wcat{
+  font-family:var(--font-display); font-style:italic; font-weight:500; font-size:18px;
+  color:var(--wine); margin:22px 0 6px; padding-bottom:6px; border-bottom:1px solid var(--line);
+}
+.witem{
+  border-bottom:none; background:#FBF6EF; border-radius:14px; padding:10px 12px; margin:6px 0;
+  transition:background .15s, box-shadow .15s;
+}
+.witem:hover{background:#F6EEE3;}
+.witem .nm{font-size:14.5px; font-weight:600;}
+.witem .wt{font-size:11.5px; color:var(--ink-soft); font-weight:500;}
+.wstep button{
+  width:34px; height:34px; border:none; border-radius:50%; background:#fff; color:var(--wine);
+  box-shadow:0 0 0 1.5px var(--line); font-size:18px; transition:all .15s;
+}
+.wstep button:hover{background:var(--wine); color:#fff; box-shadow:none;}
+.wstep input{
+  border:none; background:transparent; font-family:var(--font-display); font-weight:600; font-size:19px; width:40px; color:var(--ink);
+}
+.wstep input:focus{outline:none;}
+
+/* своя вещь */
+.wcustom{border:1.5px dashed #D3C2AB; background:transparent; border-radius:16px; padding:16px;}
+.wcustom label, .field label{font-size:12px; font-weight:600; color:var(--ink-soft); letter-spacing:.2px;}
+.wcustom input, .field input[type=number], .field input[type=text], .field select{
+  border:1.5px solid var(--line); border-radius:12px; background:#fff; font-family:'Montserrat',sans-serif; font-size:15px; padding:10px 12px;
+}
+.wcustom input{height:42px;}
+.wcustom input:focus, .field input:focus, .field select:focus{outline:none; border-color:var(--wine); box-shadow:0 0 0 3px rgba(74,24,32,.1);}
+
+/* результат шага 1 */
+.wresult{
+  background:var(--wine); color:var(--cream); border:none; border-left:none; border-radius:18px;
+  padding:20px 22px; margin-top:20px; font-size:14px; line-height:1.55;
+}
+.wresult b{font-family:var(--font-display); font-weight:600; font-size:34px; color:#fff; letter-spacing:-.5px;}
+.wresult span{color:rgba(238,231,223,.7) !important;}
+.wbtn{border:1.5px solid var(--line); border-radius:999px; padding:10px 18px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft);}
+.wbtn:hover{border-color:var(--wine); color:var(--wine);}
+.wnote, .hint{font-size:11.5px; color:var(--ink-soft); line-height:1.5;}
+
+/* шаг 2 */
+fieldset{margin-bottom:26px;}
+legend{
+  font-family:var(--font-display); font-style:italic; font-weight:500; font-size:18px; color:var(--wine); margin-bottom:12px;
+}
+.toggle-row{padding:5px; background:#F3ECE3; border-radius:999px; gap:6px;}
+.toggle-row label{border:none; border-radius:999px; padding:12px 10px; font-size:14px; background:transparent;}
+.toggle-row input:checked + label{background:var(--wine); color:var(--cream); box-shadow:0 6px 14px -6px rgba(74,24,32,.6);}
+.checkline{border:1.5px dashed #D3C2AB; border-radius:14px; font-weight:500;}
+.checkline input{accent-color:var(--wine);}
+.warn{border-radius:12px;}
+
+/* чек */
+.receipt{
+  background:var(--wine); color:var(--cream); border:none; border-radius:22px;
+  padding:30px 26px 32px; box-shadow:0 18px 36px -18px rgba(74,24,32,.7);
+  font-family:'Montserrat',sans-serif;
+}
+.receipt::before,.receipt::after{display:none;}
+@media (min-width:761px){ .receipt{position:sticky; top:16px; align-self:start;} }
+.receipt h2{
+  font-family:var(--font-display); font-style:italic; font-weight:500; font-size:22px; color:var(--cream);
+  border-bottom:1px solid rgba(238,231,223,.2); margin-bottom:14px;
+}
+.line-item{border-bottom:1px dashed rgba(238,231,223,.2); font-size:13.5px; color:rgba(238,231,223,.88);}
+.line-item .amt{color:#fff; font-weight:600;}
+.line-item .sub-note{color:rgba(238,231,223,.6);}
+.total-row{border-top:1.5px solid rgba(238,231,223,.55); margin-top:20px;}
+.total-row .label{font-family:var(--font-display); font-style:italic; font-size:19px; color:var(--cream);}
+.total-row .amt{font-family:var(--font-display); font-size:40px; font-weight:600; color:#fff; letter-spacing:-1px;}
+.total-row .amt.placeholder{font-family:'Montserrat',sans-serif; font-size:12px; color:rgba(238,231,223,.65); letter-spacing:0; font-weight:500;}
+.stamp{border-color:#F4B9B2; color:#F4B9B2; font-family:'Montserrat',sans-serif; font-weight:700; border-radius:999px;}
+.receipt .warn{background:rgba(238,231,223,.1); color:var(--cream); border-color:rgba(238,231,223,.25);}
+
+/* низ */
+footer{font-size:11.5px; color:var(--ink-soft); max-width:560px; margin:30px auto 0; line-height:1.55;}
+.mgr{
+  background:var(--red); border-radius:999px; padding:16px; font-size:15px; letter-spacing:.3px;
+  box-shadow:0 14px 26px -12px rgba(232,54,42,.7); max-width:420px; margin:20px auto 0; transition:transform .15s;
+}
+.mgr:hover{transform:translateY(-2px);}
+@media (max-width:560px){
+  .masthead{padding:20px;}
+  .step-head .num{font-size:48px;}
+  .panel,.wpanel{padding:20px;}
+}
+.masthead img.logo{height:72px; border-radius:16px; box-shadow:0 0 0 2px rgba(238,231,223,.28);}
+@media (max-width:560px){.masthead img.logo{height:56px;}}
+.masthead .text-block{gap:0; position:relative; z-index:1; width:100%;}
+.masthead .logo-block{width:100%;}
+.brand{font-family:'Lora',Georgia,serif; font-weight:600; font-size:15px; letter-spacing:.42em; color:var(--cream); text-transform:uppercase;}
+.brand-line{height:1px; background:rgba(238,231,223,.55); margin:12px 0 16px; width:100%;}
+.masthead h1{margin:0 0 6px;}
+.thin-rule{height:1px; background:var(--wine); opacity:.55; margin:40px 4px 0;}
+.step2{margin-top:30px;}
+.foot-rule{margin-top:34px;}
+.brand-foot{text-align:center; color:var(--wine); margin-top:16px; font-size:13px;}
+@media (max-width:560px){.brand{font-size:12px;letter-spacing:.34em;}}
+
+.rc-brand{font-size:11px; letter-spacing:.4em; color:rgba(238,231,223,.8);}
+.rc-line{margin:10px 0 14px; background:rgba(238,231,223,.4);}
+.receipt h2{margin-top:0;}
+.receipt .total-row{border-top:1px solid rgba(238,231,223,.6);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="logo-block">
+    <div class="text-block">
+      <div class="brand">WAY · 2 · CHINA</div>
+      <div class="brand-line"></div>
+      <h1>Калькулятор заказа <em>из Китая</em></h1>
+      <div class="sub">Шаг 1: вес заказа. Шаг 2: стоимость доставки</div>
+    </div>
+    </div>
+
+  </div>
+
+
+  <div class="panel wpanel">
+    <div class="step-head"><span class="num">01</span><div><div class="step-title">Шаг первый</div><h2 class="step-h">Вес заказа: выберите товары</h2></div></div>
+    <div class="wtabs" id="wtabs"></div>
+    <div class="wlist" id="wlist"></div>
+    <div class="wcustom">
+      <div class="f" style="flex:2;"><label for="cName">Своя вещь (название по желанию)</label><input type="text" id="cName" placeholder="например, плед"></div>
+      <div class="f"><label for="cW">Вес 1 шт, кг</label><input type="number" id="cW" min="0" step="0.05" placeholder="0,5"></div>
+      <div class="f"><label for="cQ">Кол-во, шт</label><input type="number" id="cQ" min="0" step="1" value="1"></div>
+    </div>
+    <div class="wresult" id="wresult">Отметьте товары, и здесь появится примерный вес. Он сразу подставится в расчёт доставки ниже.</div>
+    <div class="wactions"><button class="wbtn" id="wreset" type="button">Сбросить товары</button></div>
+    <div class="wnote">Веса товаров приблизительные: реальный вес зависит от модели, размера, материала и упаковки продавца. Вес упаковки и запас на непредвиденное уже учтены в итоге.</div>
+  </div>
+  <div class="thin-rule"></div>
+  <div class="step-head step2"><span class="num">02</span><div><div class="step-title">Шаг второй</div><h2 class="step-h">Стоимость доставки</h2></div></div>
+  <div class="grid">
+
+    <!-- INPUTS -->
+    <div class="panel">
+
+      <fieldset>
+        <legend>Тип доставки</legend>
+        <div class="toggle-row">
+          <input type="radio" name="shipType" id="ship-avto" value="avto" checked>
+          <label for="ship-avto">Сборный (авто)</label>
+          <input type="radio" name="shipType" id="ship-avia" value="avia">
+          <label for="ship-avia">Авиа</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Груз</legend>
+        <div class="field">
+          <label for="weight">Вес, кг</label>
+          <input type="number" id="weight" min="0" step="0.1" value="10">
+          <div class="hint" id="weight-hint">Сборный: 5–20 кг — 4,3 $/кг · 20–40 кг — 4 $/кг · 40+ кг — 3,8 $/кг. Минимум к оплате — 5 кг.</div>
+        </div>
+        <div class="field" id="itemcost-wrap">
+          <label for="itemCost">Стоимость товара, $ (для комиссии и страховки)</label>
+          <input type="number" id="itemCost" min="0" step="1" value="0">
+        </div>
+      </fieldset>
+
+      <fieldset id="packaging-fieldset">
+        <legend>Упаковка (только для сборного груза)</legend>
+        <div class="pack-row">
+          <div class="field grow">
+            <label for="packType">Вид упаковки</label>
+            <select id="packType">
+              <option value="basic">Базовая — короб + мешок + скотч, 5 $/место</option>
+              <option value="corner">Уголки — картонные углы жёсткости, 7 $/место</option>
+              <option value="crate">Обрешётка — деревянная, для хрупкого, 10 $/место</option>
+              <option value="pallet">Палета — обрешётка + поддон, 40 $/м³</option>
+            </select>
+          </div>
+          <div class="field narrow">
+            <label for="places">Кол-во мест, шт</label>
+            <input type="number" id="places" min="1" step="1" value="1">
+          </div>
+        </div>
+        <div class="field" id="volume-field" style="display:none; margin-top:12px;">
+          <label for="volume">Объём груза, м³</label>
+          <input type="number" id="volume" min="0" step="0.01" value="0">
+        </div>
+        <div class="hint">Упаковка обязательна для сборного груза. Разгрузка и передача в транспортную (или выдача в Москве) — 5 $/место, считается автоматически по количеству мест.</div>
+      </fieldset>
+
+      <fieldset id="buyer-fieldset">
+        <legend>Выкуп товара</legend>
+        <div class="field">
+          <label for="buyerType">Кто выкупает товар</label>
+          <select id="buyerType">
+            <option value="0">Клиент сам покупает — комиссия 0%</option>
+            <option value="0.05" selected>Мы выкупаем, розница — 5%</option>
+            <option value="0.02">Мы выкупаем, опт — 2%</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset id="insurance-fieldset">
+        <legend>Страховка (по желанию)</legend>
+        <label class="checkline" id="insurance-wrap">
+          <input type="checkbox" id="insurance">
+          Подключить страховку
+        </label>
+        <div class="hint" id="insurance-rule">
+          Ставка зависит от цены товара за 1 кг: 1–10 $/кг → 1% · 10–20 $/кг → 2% · 20 $/кг и выше → 3%. Цена за кг = стоимость товара ÷ вес.
+        </div>
+      </fieldset>
+
+      <fieldset id="rate-avto-fieldset">
+        <legend>Курс рубля (по желанию)</legend>
+        <div class="field">
+          <label for="rubRateAvto">Курс на день уточняйте у менеджера · $ → ₽</label>
+          <input type="text" id="rubRateAvto" inputmode="decimal" placeholder="впишите курс">
+        </div>
+        <div class="hint">Впишите курс — итог автоматически пересчитается в рубли, сумма в $ останется рядом.</div>
+      </fieldset>
+
+      <fieldset id="rate-avia-fieldset">
+        <legend>Курс рубля (по желанию)</legend>
+        <div class="field">
+          <label for="rubRateAvia">Курс на день уточняйте у менеджера · ¥ → ₽</label>
+          <input type="text" id="rubRateAvia" inputmode="decimal" placeholder="впишите курс">
+        </div>
+        <div class="hint">Впишите курс — итог автоматически пересчитается в рубли, сумма в ¥ останется рядом.</div>
+      </fieldset>
+
+    </div>
+
+    <!-- RECEIPT -->
+    <div class="receipt">
+      <div class="stamp" id="stamp">РАСЧЁТ</div>
+      <div class="brand rc-brand">WAY · 2 · CHINA</div>
+      <div class="brand-line rc-line"></div>
+      <h2>Итоговый расчёт</h2>
+
+      <div class="line-item" id="row-tariff">
+        <span>Тариф применён</span>
+        <span class="amt" id="tariff-label">—</span>
+      </div>
+      <div class="line-item">
+        <span>Доставка</span>
+        <span class="amt" id="row-delivery">—</span>
+      </div>
+      <div class="line-item hidden-row" id="row-packaging-wrap">
+        <span>Упаковка</span>
+        <span class="amt" id="row-packaging">—</span>
+      </div>
+      <div class="line-item hidden-row" id="row-handling-wrap">
+        <span>Передача в ТК / выдача в Москве</span>
+        <span class="amt" id="row-handling">—</span>
+      </div>
+      <div class="line-item" id="row-commission-wrap">
+        <span>Комиссия за выкуп</span>
+        <span class="amt" id="row-commission">—</span>
+      </div>
+      <div class="line-item" id="row-insurance-wrap">
+        <span>
+          Страховка
+          <span class="sub-note" id="insurance-tier-note"></span>
+        </span>
+        <span class="amt" id="row-insurance">—</span>
+      </div>
+
+      <div class="total-row">
+        <span class="label">Итого</span>
+        <span class="amt" id="row-total">—</span>
+      </div>
+      <div class="total-row" id="row-total-rub-wrap" style="margin-top:4px; padding-top:0; border-top:none;">
+        <span class="label"></span>
+        <span class="amt" id="row-total-rub">Впишите курс рубля, чтобы увидеть сумму в ₽</span>
+      </div>
+
+      <div class="warn" id="warn-min" style="display:none;"></div>
+
+    </div>
+
+  </div>
+
+  <footer>Расчёт ориентировочный. Точная стоимость будет известна после того, как весь товар приедет на склад, будет собран и взвешен.</footer>
+  <div class="thin-rule foot-rule"></div>
+  <div class="brand brand-foot">WAY · 2 · CHINA</div>
+  <a class="mgr" href="https://t.me/way2china_logistic" target="_blank" rel="noopener">Написать менеджеру в Telegram</a>
+</div>
+
+<script>
+const weightEl = document.getElementById('weight');
+const itemCostEl = document.getElementById('itemCost');
+const itemcostWrap = document.getElementById('itemcost-wrap');
+const buyerFieldset = document.getElementById('buyer-fieldset');
+const buyerTypeEl = document.getElementById('buyerType');
+const insuranceFieldset = document.getElementById('insurance-fieldset');
+const insuranceEl = document.getElementById('insurance');
+const insuranceTierNote = document.getElementById('insurance-tier-note');
+const rateAvtoFieldset = document.getElementById('rate-avto-fieldset');
+const rateAviaFieldset = document.getElementById('rate-avia-fieldset');
+const rubRateAvtoEl = document.getElementById('rubRateAvto'); // $ -> ₽
+const rubRateAviaEl = document.getElementById('rubRateAvia'); // ¥ -> ₽
+const weightHint = document.getElementById('weight-hint');
+
+const packagingFieldset = document.getElementById('packaging-fieldset');
+const packTypeEl = document.getElementById('packType');
+const placesEl = document.getElementById('places');
+const volumeField = document.getElementById('volume-field');
+const volumeEl = document.getElementById('volume');
+
+const rowDelivery = document.getElementById('row-delivery');
+const rowPackagingWrap = document.getElementById('row-packaging-wrap');
+const rowPackaging = document.getElementById('row-packaging');
+const rowHandlingWrap = document.getElementById('row-handling-wrap');
+const rowHandling = document.getElementById('row-handling');
+const rowCommissionWrap = document.getElementById('row-commission-wrap');
+const rowCommission = document.getElementById('row-commission');
+const rowInsuranceWrap = document.getElementById('row-insurance-wrap');
+const rowInsurance = document.getElementById('row-insurance');
+const rowTotal = document.getElementById('row-total');
+const rowTotalRub = document.getElementById('row-total-rub');
+const tariffLabel = document.getElementById('tariff-label');
+const warnMin = document.getElementById('warn-min');
+const stamp = document.getElementById('stamp');
+
+const PACK_PRICE_USD = { basic:5, corner:7, crate:10 }; // за место
+const PALLET_PRICE_USD_PER_M3 = 40;
+const HANDLING_PRICE_USD = 5; // за место, только для сборного
+
+function parseRate(el){
+  const v = parseFloat((el.value || '').replace(',', '.'));
+  return isNaN(v) || v <= 0 ? null : v;
+}
+
+function fmt(n, symbol){
+  const rounded = Math.round(n * 100) / 100;
+  const parts = rounded.toFixed(2).split('.');
+  let intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const cents = parts[1] === '00' ? '' : ',' + parts[1];
+  return symbol + intPart + cents;
+}
+
+function getShipType(){
+  return document.querySelector('input[name="shipType"]:checked').value;
+}
+
+function insuranceRateFor(pricePerKg){
+  if(pricePerKg <= 10) return 0.01;
+  if(pricePerKg <= 20) return 0.02;
+  return 0.03;
+}
+
+function calc(){
+  const shipType = getShipType();
+  const isAvia = shipType === 'avia';
+  let weight = parseFloat(weightEl.value) || 0;
+  const itemCostUSD = parseFloat(itemCostEl.value) || 0;
+  const buyerPct = parseFloat(buyerTypeEl.value) || 0;
+
+  weightHint.style.display = isAvia ? 'none' : 'block';
+  itemcostWrap.style.display = isAvia ? 'none' : 'block';
+  packagingFieldset.classList.toggle('collapsed', isAvia);
+  buyerFieldset.classList.toggle('collapsed', isAvia);
+  insuranceFieldset.classList.toggle('collapsed', isAvia);
+  rateAvtoFieldset.classList.toggle('collapsed', isAvia);
+  rateAviaFieldset.classList.toggle('collapsed', !isAvia);
+  rowCommissionWrap.classList.toggle('hidden-row', isAvia);
+  rowInsuranceWrap.classList.toggle('hidden-row', isAvia);
+  if(isAvia) insuranceEl.checked = false;
+
+  warnMin.style.display = 'none';
+  let tariffText = '—';
+  let total = 0;
+  let symbol = '$';
+  let rubRate = null;
+
+  if(isAvia){
+    const billedWeight = weight > 0 ? Math.ceil(weight) : 0;
+    const deliveryCNY = billedWeight * 280;
+    tariffText = 'Авиа · 280 ¥/кг · округлено до ' + billedWeight + ' кг';
+    total = deliveryCNY;
+    symbol = '¥';
+    rubRate = parseRate(rubRateAviaEl);
+
+    tariffLabel.textContent = tariffText;
+    rowDelivery.textContent = fmt(deliveryCNY, symbol);
+  } else {
+    let billedWeight = weight;
+    if(weight > 0 && weight < 5){
+      billedWeight = 5;
+      warnMin.style.display = 'block';
+      warnMin.textContent = 'Минимальный вес сборного груза — 5 кг. Расчёт произведён по 5 кг.';
+    }
+    let rate;
+    if(billedWeight <= 20) rate = 4.3;
+    else if(billedWeight <= 40) rate = 4.0;
+    else rate = 3.8;
+    const deliveryUSD = billedWeight * rate;
+    tariffText = 'Сборный · ' + rate.toFixed(1) + ' $/кг (' + (billedWeight<=20?'5–20 кг':billedWeight<=40?'20–40 кг':'40+ кг') + ')';
+
+    let packagingUSD = 0;
+    let handlingUSD = 0;
+    const places = Math.max(1, parseInt(placesEl.value) || 1);
+    const packType = packTypeEl.value;
+    volumeField.style.display = (packType === 'pallet') ? 'block' : 'none';
+
+    if(packType === 'pallet'){
+      const volume = parseFloat(volumeEl.value) || 0;
+      packagingUSD = volume * PALLET_PRICE_USD_PER_M3;
+    } else if(PACK_PRICE_USD[packType]){
+      packagingUSD = places * PACK_PRICE_USD[packType];
+    }
+    handlingUSD = places * HANDLING_PRICE_USD;
+
+    const commissionUSD = itemCostUSD * buyerPct;
+
+    let insuranceUSD = 0;
+    insuranceTierNote.textContent = '';
+    if(insuranceEl.checked && weight > 0){
+      const pricePerKg = itemCostUSD / weight;
+      const pct = insuranceRateFor(pricePerKg);
+      insuranceUSD = itemCostUSD * pct;
+      insuranceTierNote.textContent = pricePerKg.toFixed(1) + ' $/кг → ' + (pct*100).toFixed(0) + '%';
+    }
+
+    total = deliveryUSD + packagingUSD + handlingUSD + commissionUSD + insuranceUSD;
+    symbol = '$';
+    rubRate = parseRate(rubRateAvtoEl);
+
+    tariffLabel.textContent = tariffText;
+    rowDelivery.textContent = fmt(deliveryUSD, symbol);
+    rowPackaging.textContent = fmt(packagingUSD, symbol);
+    rowHandling.textContent = fmt(handlingUSD, symbol);
+    rowCommission.textContent = fmt(commissionUSD, symbol);
+    rowInsurance.textContent = fmt(insuranceUSD, symbol);
+  }
+
+  rowPackagingWrap.classList.toggle('hidden-row', isAvia);
+  rowHandlingWrap.classList.toggle('hidden-row', isAvia);
+
+  rowTotal.textContent = fmt(total, symbol);
+
+  if(rubRate){
+    const totalRub = Math.round(total * rubRate).toLocaleString('ru-RU');
+    rowTotalRub.textContent = '\u2248 ' + totalRub + ' \u20BD';
+    rowTotalRub.classList.remove('placeholder');
+  } else {
+    rowTotalRub.textContent = 'Впишите курс рубля, чтобы увидеть сумму в \u20BD';
+    rowTotalRub.classList.add('placeholder');
+  }
+
+  stamp.classList.toggle('show', weight > 0);
+}
+
+document.querySelectorAll('input[name="shipType"]').forEach(el => el.addEventListener('change', calc));
+[weightEl, itemCostEl, buyerTypeEl, insuranceEl, rubRateAvtoEl, rubRateAviaEl, packTypeEl, placesEl, volumeEl].forEach(el => {
+  el.addEventListener('input', calc);
+  el.addEventListener('change', calc);
+});
+
+calc();
+</script>
+
+<script>
+// Настройки шага 1 (предположения, поменяйте по своим взвешиваниям)
+const PACK_ADD = 0.10;   // прибавка веса упаковки
+const RESERVE  = 0.125;  // запас на непредвиденное
+const ITEMS = [{"tab": "adult", "cat": "Верхняя одежда", "name": "Лёгкая куртка, ветровка", "w": 0.65}, {"tab": "adult", "cat": "Верхняя одежда", "name": "Пуховик", "w": 1.2}, {"tab": "adult", "cat": "Верхняя одежда", "name": "Пальто", "w": 1.25}, {"tab": "adult", "cat": "Трикотаж", "name": "Худи, свитшот", "w": 0.6}, {"tab": "adult", "cat": "Трикотаж", "name": "Свитер", "w": 0.55}, {"tab": "adult", "cat": "Трикотаж", "name": "Футболка", "w": 0.2}, {"tab": "adult", "cat": "Низ", "name": "Джинсы", "w": 0.75}, {"tab": "adult", "cat": "Низ", "name": "Брюки", "w": 0.4}, {"tab": "adult", "cat": "Низ", "name": "Платье", "w": 0.35}, {"tab": "adult", "cat": "Обувь", "name": "Кроссовки (пара, с коробкой)", "w": 1.2}, {"tab": "adult", "cat": "Обувь", "name": "Зимние ботинки", "w": 1.5}, {"tab": "adult", "cat": "Аксессуары", "name": "Шапка, шарф, перчатки", "w": 0.15}, {"tab": "adult", "cat": "Аксессуары", "name": "Сумка", "w": 0.7}, {"tab": "adult", "cat": "Аксессуары", "name": "Носки (пара)", "w": 0.07}, {"tab": "kids", "cat": "Детская одежда", "name": "Зимний комбинезон, куртка", "w": 0.8}, {"tab": "kids", "cat": "Детская одежда", "name": "Лёгкая куртка, ветровка", "w": 0.4}, {"tab": "kids", "cat": "Детская одежда", "name": "Худи, свитшот, кофта", "w": 0.35}, {"tab": "kids", "cat": "Детская одежда", "name": "Футболка, боди", "w": 0.1}, {"tab": "kids", "cat": "Детская одежда", "name": "Джинсы, брюки, леггинсы", "w": 0.3}, {"tab": "kids", "cat": "Детская одежда", "name": "Костюм, комплект (2 предмета)", "w": 0.4}, {"tab": "kids", "cat": "Детская одежда", "name": "Пижама", "w": 0.25}, {"tab": "kids", "cat": "Детская одежда", "name": "Шапка, шарф, варежки", "w": 0.1}, {"tab": "kids", "cat": "Детская обувь", "name": "Кроссовки (пара, с коробкой)", "w": 0.7}, {"tab": "kids", "cat": "Детская обувь", "name": "Зимние ботинки, сапоги", "w": 0.9}, {"tab": "kids", "cat": "Игрушки", "name": "Мягкая игрушка (средняя)", "w": 0.3}, {"tab": "kids", "cat": "Игрушки", "name": "Конструктор (средний набор)", "w": 0.8}, {"tab": "kids", "cat": "Игрушки", "name": "Развивающая игра, пазл", "w": 0.5}, {"tab": "home", "cat": "Посуда", "name": "Кружка керамическая", "w": 0.4}, {"tab": "home", "cat": "Посуда", "name": "Термокружка, бутылка", "w": 0.4}, {"tab": "home", "cat": "Посуда", "name": "Стакан, бокал (стекло)", "w": 0.3}, {"tab": "home", "cat": "Посуда", "name": "Тарелка", "w": 0.4}, {"tab": "home", "cat": "Посуда", "name": "Набор посуды (небольшой)", "w": 2.5}, {"tab": "home", "cat": "Посуда", "name": "Сковорода, кастрюля", "w": 1.2}, {"tab": "home", "cat": "Посуда", "name": "Набор контейнеров для еды", "w": 0.8}, {"tab": "home", "cat": "Текстиль", "name": "Комплект постельного белья", "w": 1.6}, {"tab": "home", "cat": "Текстиль", "name": "Наволочки, простыня отдельно", "w": 0.5}, {"tab": "home", "cat": "Текстиль", "name": "Одеяло", "w": 2.0}, {"tab": "home", "cat": "Текстиль", "name": "Подушка", "w": 0.8}, {"tab": "home", "cat": "Текстиль", "name": "Плед", "w": 1.2}, {"tab": "home", "cat": "Текстиль", "name": "Полотенце", "w": 0.4}, {"tab": "home", "cat": "Текстиль", "name": "Шторы (комплект)", "w": 1.5}, {"tab": "home", "cat": "Текстиль", "name": "Ковёр, коврик", "w": 1.5}, {"tab": "home", "cat": "Хранение и декор", "name": "Органайзер, корзина для хранения", "w": 0.5}, {"tab": "home", "cat": "Хранение и декор", "name": "Настольная лампа, светильник", "w": 0.8}, {"tab": "home", "cat": "Хранение и декор", "name": "Ваза", "w": 0.8}, {"tab": "home", "cat": "Хранение и декор", "name": "Фоторамка", "w": 0.4}, {"tab": "home", "cat": "Хранение и декор", "name": "Свеча, ароматизатор", "w": 0.3}];
+const TABS = [{id:"adult",label:"Взрослые"},{id:"kids",label:"Детские"},{id:"home",label:"Дом"}];
+const qty = ITEMS.map(() => 0);
+let activeTab = "adult";
+const $ = id => document.getElementById(id);
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) && n > 0 ? n : 0; };
+const kg1 = x => (Math.ceil(x*10 - 1e-9)/10).toLocaleString("ru-RU",{minimumFractionDigits:1,maximumFractionDigits:1}) + " кг";
+const wfmt = x => x.toLocaleString("ru-RU",{maximumFractionDigits:2}) + " кг";
+
+function renderTabs(){
+  const el = $("wtabs"); el.innerHTML = "";
+  TABS.forEach(t => {
+    const cnt = ITEMS.reduce((s,it,i)=> s + (it.tab===t.id ? qty[i] : 0), 0);
+    const b = document.createElement("button"); b.type="button";
+    b.className = "wtab" + (t.id===activeTab ? " active" : "");
+    b.innerHTML = t.label + '<span class="badge' + (cnt ? "" : " zero") + '">' + cnt + '</span>';
+    b.onclick = () => { activeTab = t.id; renderTabs(); renderList(); };
+    el.appendChild(b);
+  });
+}
+function renderList(){
+  const el = $("wlist"); el.innerHTML = ""; let last = "";
+  ITEMS.forEach((it,i) => {
+    if (it.tab !== activeTab) return;
+    if (it.cat !== last){ const h=document.createElement("div"); h.className="wcat"; h.textContent=it.cat; el.appendChild(h); last=it.cat; }
+    const row = document.createElement("div"); row.className = "witem";
+    row.innerHTML = '<div><span class="nm">'+it.name+'</span><span class="wt">≈ '+wfmt(it.w)+' за 1 шт</span></div>' +
+      '<div class="wstep"><button type="button">−</button><input type="number" inputmode="numeric" min="0" step="1" value="'+qty[i]+'"><button type="button">+</button></div>';
+    const [m,p] = row.querySelectorAll("button"); const inp = row.querySelector("input");
+    const set = v => { qty[i] = Math.max(0, Math.floor(v)||0); inp.value = qty[i]; updateWeight(); renderTabs(); };
+    m.onclick = () => set(qty[i]-1); p.onclick = () => set(qty[i]+1);
+    inp.oninput = () => set(parseFloat(inp.value)); inp.onfocus = () => inp.select();
+    el.appendChild(row);
+  });
+}
+function updateWeight(){
+  let goods = 0, pieces = 0;
+  ITEMS.forEach((it,i) => { goods += it.w*qty[i]; pieces += qty[i]; });
+  const cw = num($("cW").value), cq = Math.max(0, Math.floor(num($("cQ").value)));
+  if (cw && cq){ goods += cw*cq; pieces += cq; }
+  const res = $("wresult");
+  if (!goods){ res.innerHTML = "Отметьте товары, и здесь появится примерный вес. Он сразу подставится в расчёт доставки ниже."; return; }
+  const total = goods*(1+PACK_ADD)*(1+RESERVE);
+  const rounded = Math.ceil(total*10 - 1e-9)/10;
+  res.innerHTML = "Вещей: <b style='font-size:16px'>"+pieces+" шт</b> · вес товаров ≈ "+kg1(goods)+"<br>С упаковкой и запасом: <b>≈ "+kg1(total)+"</b><br><span style='font-size:12.5px;color:#5A4B37'>Вес подставлен в расчёт доставки ниже, его можно поправить вручную.</span>";
+  const we = $("weight"); we.value = rounded; calc();
+}
+["cName","cW","cQ"].forEach(id => $(id).addEventListener("input", updateWeight));
+$("wreset").onclick = () => { qty.fill(0); $("cName").value=""; $("cW").value=""; $("cQ").value="1"; renderTabs(); renderList(); updateWeight(); };
+renderTabs(); renderList();
+</script>
+</body>
+</html>
