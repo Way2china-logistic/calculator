@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Какая ТК довезёт груз в ваш город — Way2China</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap">
+<style>
+/* Layout: одна колонка-инструмент — поиск сверху, ниже группы ТК: «возят», «проверьте на сайте», «уточните у менеджера» */
+:root{
+  --bg:#FBF8F5; --surface:#FFFFFF; --fg:#17181C; --muted:#6B6460; --line:#E7DED7;
+  --accent:#8F1D1A; --accent-soft:#F4E6E3; --ok:#1F6B45; --ok-soft:#E3F1E8; --warn:#8A5A00; --warn-soft:#F7EED9;
+  --font-display:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+/* Светлый стиль обложек и актуальных историй Way2China: одна тема, без тёмного режима */
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:32px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+.brand{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--font-display);font-weight:900;font-size:clamp(28px,6vw,40px);line-height:1.05;letter-spacing:-.02em;margin:6px 0 10px;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:60ch}
+.search{position:relative}
+.search label{display:block;font-weight:600;font-size:13px;margin-bottom:8px}
+.field{display:flex;gap:8px}
+#city{flex:1;min-width:0;font:inherit;font-size:17px;padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);outline:none}
+#city:focus{border-color:var(--accent)}
+#go{font:inherit;font-weight:700;padding:0 20px;border:0;border-radius:12px;background:var(--accent);color:#fff;cursor:pointer}
+#go:focus-visible,.chip:focus-visible,a:focus-visible,.sug button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);list-style:none;padding:6px;z-index:5;max-height:280px;overflow:auto}
+.sug button{all:unset;display:block;width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;cursor:pointer}
+.sug button:hover,.sug button[aria-selected="true"]{background:var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.result{display:flex;flex-direction:column;gap:22px}
+.rhead{font-family:var(--font-display);font-size:22px;font-weight:800;margin:0}
+.rhead span{color:var(--accent)}
+.group h3{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card b{font-size:16px}
+.pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.q{background:var(--accent-soft);color:var(--accent)}
+.price{font-variant-numeric:tabular-nums;font-size:13px;color:var(--fg)}
+.note{font-size:13px;color:var(--muted)}
+.card a{color:var(--accent);font-weight:600;font-size:13px;text-decoration:none}
+.card a:hover{text-decoration:underline}
+.empty{background:var(--warn-soft);color:var(--fg);border-radius:12px;padding:14px 16px}
+.contact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.contact p{margin:0}
+.contact a{display:inline-block;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;padding:10px 16px;border-radius:10px}
+.handle{font-weight:700;user-select:all}
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer a{color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
+/* Стиль обложек Way2China: плотная тёмная плашка с белой линейной графикой, крупный чёрный заголовок с бордовым акцентом, метка вида на бордовой плашке */
+:root{--plate:#F3E6E2;--hot:#E8362A}
+.plate{background:var(--plate);color:var(--accent);border-radius:28px;padding:20px 20px 8px;overflow:hidden}
+.card .top{justify-content:flex-start;flex-wrap:wrap;row-gap:6px}
+.card .top b{flex:1 1 0;min-width:0;overflow-wrap:anywhere;line-height:1.2}
+.card .top .pill{margin-left:auto}
+.cards{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.ic{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--accent);background:var(--plate);color:var(--accent);display:grid;place-items:center}
+.ic svg{width:22px;height:22px}
+.plate svg{display:block;width:100%;height:auto;max-width:100%}
+.tag{display:inline-block;background:var(--accent);color:#fff;font-weight:900;font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:6px 12px;border-radius:6px}
+h1{font-size:clamp(34px,8.5vw,56px);font-weight:900;letter-spacing:-.03em;line-height:1.02;margin:14px 0 12px}
+h1 em{font-style:normal;color:var(--accent)}
+.brandline{text-align:center;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);opacity:.8}
+.notice{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:14px 16px}
+.notice b{color:var(--accent)}
+.notice .kg{flex:none;background:var(--accent);color:#fff;font-weight:900;font-size:13px;line-height:1.1;text-align:center;border-radius:10px;padding:8px 10px;font-variant-numeric:tabular-nums}
+.rhead{font-weight:900;font-size:26px;letter-spacing:-.02em}
+.card{border-radius:16px}
+.card b{font-weight:800}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div><span class="tag">Доставка по России</span></div>
+    <h1>Какая ТК довезёт груз <em>в ваш город</em></h1>
+    <p class="lead">Груз из Китая приезжает на Южные ворота в Москве. Оттуда мы передаём его в транспортную компанию, которую выберете вы. Введите свой город и посмотрите, кто туда возит.</p>
+  </header>
+
+  <div class="notice">
+    <div class="kg">кг<br>м³</div>
+    <div><b>Вес и объём груза указаны в накладной.</b> По ним можно заранее рассчитать доставку по России на сайте выбранной ТК и отправить данные менеджеру, пока груз ещё в пути.</div>
+  </div>
+
+
+  <form class="search" id="form" autocomplete="off">
+    <label for="city">Ваш город</label>
+    <div class="field">
+      <input id="city" name="city" type="text" placeholder="Например, Новосибирск" aria-autocomplete="list" aria-controls="sug" aria-expanded="false">
+      <button id="go" type="submit">Найти</button>
+    </div>
+    <ul class="sug" id="sug" role="listbox" hidden></ul>
+    <div class="chips" aria-label="Популярные города">
+      <button type="button" class="chip" data-city="Екатеринбург">Екатеринбург</button>
+      <button type="button" class="chip" data-city="Новосибирск">Новосибирск</button>
+      <button type="button" class="chip" data-city="Краснодар">Краснодар</button>
+      <button type="button" class="chip" data-city="Казань">Казань</button>
+      <button type="button" class="chip" data-city="Махачкала">Махачкала</button>
+      <button type="button" class="chip" data-city="Владивосток">Владивосток</button>
+    </div>
+  </form>
+
+  <section class="result" id="result" aria-live="polite"></section>
+
+
+  <footer>
+    <span>Города взяты с сайтов ТК в октябре 2026 года: ПЭК (pecom.ru), КИТ (tk-kit.ru), ЖелДорЭкспедиция (jde.ru), Мейджик Транс (magic-trans.ru, филиалы и адресная доставка), Виктория (viktoria-tk.ru). Списки на сайтах могут быть неполными, поэтому свой город уточняйте на сайте ТК.</span>
+  </footer>
+  <div class="brandline">Way2China · карго из Китая</div>
+</div>
+
+<script>
+const TK = {
+  pek:{name:"ПЭК", site:"https://pecom.ru", label:"pecom.ru"},
+  kit:{name:"КИТ", site:"https://tk-kit.ru", label:"tk-kit.ru"},
+  jde:{name:"ЖелДорЭкспедиция", site:"https://www.jde.ru", label:"jde.ru"},
+  magic:{name:"Мейджик Транс", site:"https://magic-trans.ru", label:"magic-trans.ru"},
+  dl:{name:"Деловые линии", site:"https://www.dellin.ru", label:"dellin.ru"},
+  nrg:{name:"Энергия", site:"https://nrg-tk.ru", label:"nrg-tk.ru"},
+  baikal:{name:"Байкал Сервис", site:"https://www.baikalsr.ru", label:"baikalsr.ru"},
+  cdek:{name:"СДЭК", site:"https://www.cdek.ru", label:"cdek.ru"},
+  vic:{name:"Виктория", site:"https://www.viktoria-tk.ru", label:"viktoria-tk.ru"}
+};
+
+const LISTS = {
+vic:"Москва, Мурманск, Воронеж, Ростов-на-Дону, Краснодар, Сочи, Адлер, Симферополь, Ялта, Евпатория, Севастополь, Джанкой, Керчь, Феодосия, Судак, Мелитополь, Мариуполь, Бердянск, Луганск, Донецк",
+pek:"Абакан, Адлер, Азов, Аксай, Александров, Алексеевка, Алексин, Альметьевск, Анапа, Ангарск, Апатиты, Арзамас, Армавир, Артем, Архангельск, Астрахань, Ачинск, Балаково, Балахна, Балашиха, Балашов, Барнаул, Батайск, Белгород, Березники, Бийск, Биробиджан, Благовещенск, Бор, Борисоглебск, Боровичи, Братск, Брянск, Бугульма, Бугуруслан, Буденновск, Бузулук, Великие Луки, Великий Новгород, Верхний Уфалей, Верхняя Салда, Владивосток, Владикавказ, Владимир, Волгоград, Волгодонск, Волжский, Вологда, Вольск, Воронеж, Воскресенск, Выборг, Вышний Волочек, Вязники, Вязьма, Вятские Поляны, Гатчина, Геленджик, Георгиевск, Городец, Грибки, Грозный, Губкин, Гусь-Хрустальный, Дзержинск, Дзержинский, Димитровград, Дмитров, Домодедово, Дубна, Евпатория, Егорьевск, Екатеринбург, Елабуга, Елизово, Ессентуки, Железногорск, Жигулевск, Жирновск, Жуковский, Заводоуковск, Заволжье, Зеленоград, Зеленодольск, Иваново, Ивантеевка, Ижевск, Ирбит, Иркутск, Йошкар-Ола, Казань, Калининград, Калуга, Каменск-Уральский, Каменск-Шахтинский, Камышин, Карасук, Касимов, Качканар, Кемерово, Кинешма, Киров, Кисловодск, Клин, Клинцы, Ковров, Козельск, Коломна, Колпино, Комсомольск-на-Амуре, Копейск, Кореновск, Королев, Кострома, Котлас, Красногорск, Краснодар, Краснокаменск, Красноярск, Кропоткин, Крымск, Кстово, Кузнецк, Кулебаки, Кунгур, Курган, Курганинск, Курск, Лабинск, Ленинградская, Ленинск-Кузнецкий, Лесосибирск, Липецк, Лысьва, Люберцы, Магадан, Магнитогорск, Майкоп, Майма, Маркс, Махачкала, Миасс, Минусинск, Мирный, Михайловка, Михайловск, Моздок, Моршанск, Москва, Московский, Мурманск, Муром, Мценск, Набережные Челны, Надым, Нальчик, Наро-Фоминск, Нахабино, Находка, Невинномысск, Нефтекамск, Нефтеюганск, Нижневартовск, Нижнекамск, Нижний Новгород, Нижний Тагил, Новокузнецк, Новокуйбышевск, Новомосковск, Новороссийск, Новосибирск, Новочебоксарск, Новочеркасск, Новый Уренгой, Ногинск, Норильск, Ноябрьск, Нурлат, Обнинск, Одинцово, Октябрьский, Омск, Оренбург, Орехово-Зуево, Орск, Орёл, Острогожск, Парголово, Пенза, Первоуральск, Пермь, Петрозаводск, Петропавловск-Камчатский, Подольск, Прокопьевск, Прохладный, Псков, Пугачев, Пушкино, Пятигорск, Раменское, Рославль, Россошь, Ростов-на-Дону, Ртищево, Рубцовск, Рузаевка, Рыбинск, Рязань, Сальск, Самара, Санкт-Петербург, Саранск, Сарапул, Саратов, Саров, Сафоново, Севастополь, Северодвинск, Сергиев Посад, Серпухов, Симферополь, Славянск-на-Кубани, Слободской, Смоленск, Солнечногорск, Сосновый Бор, Сочи, Спасск-Дальний, Ставрополь, Старый Оскол, Степное, Стерлитамак, Ступино, Сургут, Суровикино, Сызрань, Сыктывкар, Таганрог, Талица, Тамбов, Тара, Тверь, Тихорецк, Тольятти, Томск, Тосно, Тула, Тулун, Тюмень, Углич, Улан-Удэ, Ульяновск, Урюпинск, Уссурийск, Уфа, Хабаровск, Ханты-Мансийск, Хасавюрт, Химки, Чайковский, Чебоксары, Челябинск, Череповец, Черкесск, Чехов, Чита, Шарья, Шахты, Шебекино, Шуя, Щелково, Электросталь, Элиста, Энгельс, Южно-Сахалинск, Яблоновский, Якутск, Ялта, Ярославль, Ярцево, Ясный",
+kit:"Абакан, Адлер, Алапаевск, Алушта, Альметьевск, Анапа, Ангарск, Арзамас, Армавир, Армянск, Артем, Архангельск, Асбест, Астрахань, Ачинск, Балаково, Барнаул, Батайск, Бахчисарай, Белгород, Белебей, Белокуриха, Белорецк, Белый Раст, Бердск, Березники, Березовский, Бийск, Биробиджан, Благовещенск, Братск, Брянск, Бугульма, Бугуруслан, Бузулук, Великий Новгород, Верхняя Пышма, Верхняя Салда, Владивосток, Владикавказ, Владимир, Волгоград, Волгодонск, Волжск, Волжский, Вологда, Воркута, Воронеж, Воткинск, Выборг, Гатчина, Геленджик, Глазов, Грозный, Губкинский, Дербент, Джанкой, Дзержинск, Димитровград, Евпатория, Ейск, Екатеринбург, Елец, Заволжье, Заинск, Златоуст, Иваново, Ижевск, Иркутск, Ишим, Йошкар-Ола, Казань, Калининград, Калуга, Каменск-Уральский, Каменск-Шахтинский, Карасук, Качканар, Кемерово, Керчь, Киров, Ковров, Когалым, Коломна, Комсомольск-на-Амуре, Кострома, Котлас, Краснодар, Красноперекопск, Краснотурьинск, Красноуфимск, Красноярск, Крымск, Кстово, Куйбышев, Кунгур, Курган, Курск, Кызыл, Лабинск, Лабытнанги, Лангепас, Ленинградская, Ленинск-Кузнецкий, Ленск, Лесной, Липецк, Магадан, Магнитогорск, Майкоп, Махачкала, Междуреченск, Миасс, Миллерово, Мирный, Можга, Мончегорск, Москва, Мурманск, Муром, Мытищи, Набережные Челны, Надым, Нальчик, Нарьян-Мар, Находка, Нерюнгри, Нефтекамск, Нефтеюганск, Нижневартовск, Нижнекамск, Нижний Новгород, Нижний Тагил, Новокузнецк, Новороссийск, Новосибирск, Новоуральск, Новошахтинск, Новый Уренгой, Ногинск, Ноябрьск, Нягань, Обнинск, Озерск, Октябрьский, Омск, Орёл, Оренбург, Орехово-Зуево, Орск, Павлово, Пенза, Первоуральск, Пермь, Петрозаводск, Петропавловск-Камчатский, Полевской, Прокопьевск, Псков, Пушкино, Пятигорск, Радужный, Ревда, Ростов-на-Дону, Рубцовск, Рыбинск, Рязань, Сальск, Самара, Санкт-Петербург, Саранск, Сарапул, Саратов, Саров, Севастополь, Серов, Серпухов, Сибай, Симферополь, Смоленск, Советский, Соликамск, Сочи, Ставрополь, Старый Оскол, Стерлитамак, Ступино, Судак, Сургут, Сухой Лог, Сызрань, Сыктывкар, Таганрог, Тамбов, Тарко-Сале, Тверь, Тобольск, Тольятти, Томск, Троицк, Туапсе, Туймазы, Тула, Тюмень, Улан-Удэ, Ульяновск, Урай, Усинск, Уссурийск, Уфа, Ухта, Феодосия, Хабаровск, Ханты-Мансийск, Чайковский, Чебоксары, Челябинск, Череповец, Черкесск, Черноморское, Чернушка, Чита, Чусовой, Шадринск, Шахты, Щелково, Электросталь, Энгельс, Югорск, Южно-Сахалинск, Южноуральск, Юрга, Юрюзань, Якутск, Ялта, Ялуторовск, Ярославль",
+jde:"Абакан, Абинск, Агрыз, Айхал, Александров, Альметьевск, Анжеро-Судженск, Арзамас, Армавир, Арсеньев, Арск, Архангельск, Астрахань, Ахтубинск, Ачинск, Балаково, Балашов, Балезино, Барнаул, Белгород, Белогорск, Березники, Бийск, Биробиджан, Благовещенск, Бодайбо, Бокситогорск, Борзя, Борисоглебск, Боровичи, Братск, Брянск, Бугульма, Бугуруслан, Буденновск, Бузулук, Великие Луки, Великий Новгород, Витим, Владивосток, Владикавказ, Владимир, Волгоград, Волгодонск, Волжск, Волжский, Вологда, Волхов, Воркута, Воронеж, Воскресенск, Воткинск, Выкса, Вышний Волочек, Вязьма, Вятские Поляны, Глазов, Горно-Алтайск, Грозный, Губкинский, Гусь-Хрустальный, Дальнегорск, Дербент, Димитровград, Домодедово, Донской, Евпатория, Екатеринбург, Елец, Железногорск, Жигалово, Заводоуковск, Зеленокумск, Златоуст, Иваново, Ижевск, Избербаш, Ильский, Инта, Иркутск, Ишим, Йошкар-Ола, Казань, Казачинское, Калининград, Калуга, Каменск-Уральский, Каменск-Шахтинский, Камень-на-Оби, Канаш, Канск, Карасук, Каргополь, Кемерово, Керчь, Кимовск, Кинешма, Киренск, Кириши, Киров, Кирово-Чепецк, Киселевск, Клин, Клинцы, Коломна, Комсомольск-на-Амуре, Кострома, Котлас, Краснодар, Краснотурьинск, Красноярск, Кропоткин, Крымск, Куйбышев, Кукмор, Кумертау, Кунгур, Курган, Курск, Кызыл, Лабинск, Лабытнанги, Лангепас, Лениногорск, Ленинск-Кузнецкий, Ленск, Лесосибирск, Липецк, Лиски, Луховицы, Лысьва, Людиново, Магадан, Магнитогорск, Майкоп, Малмыж, Мариинск, Махачкала, Междуреченск, Миасс, Мирный, Михайловка, Мичуринск, Можга, Москва, Мурманск, Муром, Набережные Челны, Надым, Назрань, Нальчик, Наро-Фоминск, Нарьян-Мар, Находка, Невинномысск, Нерюнгри, Нефтекамск, Нефтеюганск, Нижнеангарск, Нижневартовск, Нижнекамск, Нижнеудинск, Нижний Новгород, Нижний Тагил, Новая Чара, Новокузнецк, Новомосковск, Новороссийск, Новосибирск, Новый Уренгой, Ноябрьск, Нурлат, Няндома, Обнинск, Октябрьский, Омск, Орёл, Оренбург, Орск, Пенза, Первоуральск, Пермь, Петрозаводск, Петропавловск-Камчатский, Пикалево, Плесецк, Прокопьевск, Псков, Пудож, Пушкино, Пыть-Ях, Пятигорск, Ревда, Ростов-на-Дону, Ртищево, Рубцовск, Рыбинск, Рязань, Салават, Салехард, Самара, Санкт-Петербург, Саранск, Сарапул, Саратов, Сафоново, Саянск, Свирск, Свободный, Севастополь, Северобайкальск, Северодвинск, Северомуйск, Североуральск, Северская, Серов, Симферополь, Славянск-на-Кубани, Смоленск, Советский, Соликамск, Сорочинск, Сочи, Ставрополь, Старый Оскол, Стерлитамак, Сургут, Сызрань, Сыктывкар, Таганрог, Таксимо, Тамбов, Тара, Тверь, Тихвин, Тихорецк, Тобольск, Тольятти, Томск, Троицк, Тула, Тулун, Тюмень, Удачный, Удомля, Узловая, Улан-Удэ, Ульяновск, Усинск, Усолье-Сибирское, Уссурийск, Усть-Илимск, Усть-Кут, Усть-Лабинск, Уфа, Ухта, Феодосия, Хабаровск, Ханты-Мансийск, Хасавюрт, Холмская, Чайковский, Чебоксары, Челябинск, Черемхово, Череповец, Чита, Чусовой, Шарья, Шахты, Элиста, Энгельс, Югорск, Южно-Сахалинск, Южноуральск, Якутск, Ялта, Ярославль",
+magic:"Алушта, Армянск, Астрахань, Барнаул, Белгород, Белогорск, Буйнакск, Великий Новгород, Владикавказ, Волгоград, Волжский, Вологда, Воронеж, Грозный, Дербент, Дзержинск, Евпатория, Екатеринбург, Иваново, Ижевск, Избербаш, Иркутск, Йошкар-Ола, Казань, Каспийск, Кемерово, Керчь, Кизилюрт, Кизляр, Когалым, Красногвардейское, Краснодар, Красноярск, Курск, Махачкала, Минеральные Воды, Москва, Набережные Челны, Назрань, Нальчик, Нефтеюганск, Нижневартовск, Нижнегорский, Нижний Новгород, Новокузнецк, Новороссийск, Новосибирск, Новый Уренгой, Ноябрьск, Омск, Оренбург, Пенза, Пермь, Петрозаводск, Пятигорск, Ростов-на-Дону, Саки, Самара, Саратов, Санкт-Петербург, Севастополь, Симферополь, Советский, Сочи, Ставрополь, Судак, Сургут, Тольятти, Томск, Тюмень, Улан-Удэ, Ульяновск, Уфа, Феодосия, Ханты-Мансийск, Хасавюрт, Чебоксары, Челябинск, Череповец, Черкесск, Чита, Ялта, Ярославль, Абинск, Адыгейск, Азов, Аксай, Алагир, Алапаевск, Алейск, Александровск, Алексеевка, Алупка, Анапа, Апрелевка, Апшеронск, Арамиль, Ардон, Арзамас, Армавир, Арск, Артёмовский, Архангельск, Асбест, Афипский, Бакал, Баксан, Балаклава, Балахна, Балашиха, Барабинск, Батайск, Белая Калитва, Белореченск, Белоярский, Бердск, Березники, Берёзовский, Беслан, Бийск, Бобров, Богданович, Богородск, Богучар, Бокситогорск, Болотное, Бор, Борисоглебск, Бронницы, Бугуруслан, Бузулук, Буинск, Бутурлиновка, Верещагино, Верея, Верхнеуральск, Верхний Тагил, Верхний Уфалей, Верхняя Пышма, Верхняя Салда, Верхняя Тура, Верхотурье, Ветлуга, Видное, Владимир, Волгодонск, Волжск, Володарск, Волоколамск, Волосово, Волхов, Волчанск, Воскресенск, Воткинск, Всеволожск, Выборг, Выкса, Высоковск, Гатчина, Геленджик, Георгиевск, Голицыно, Горно-Алтайск, Горнозаводск, Городец, Гороховец, Горячий Ключ, Гремячинск, Губаха, Губкинский, Гудермес, Гуково, Гулькевичи, Дегтярск, Дедовск, Дзержинский, Дигора, Димитровград, Динская, Дмитров, Добрянка, Долгопрудный, Долматово, Домодедово, Дубна, Егорьевск, Ейск, Елец, Еманжелинск, Ессентуки, Железноводск, Жигулёвск, Жуковский, Заводоуковск, Заволжье, Задонск, Зарайск, Заречный, Звенигород, Зверево, Зеленогорск, Зеленодольск, Зеленокумск, Зерноград, Златоуст, Ивангород, Ивантеевка, Ивдель, Излучинск, Ильский, Ипатово, Ирбит, Исилькуль, Искитим, Истра, Ишим, Калач, Калачинск, Калининград, Калуга, Каменногорск, Каменск-Уральский, Каменск-Шахтинский, Камень-на-Оби, Камышлов, Канаш, Карабаш, Карабулак, Карасук, Каргаполье, Каргат, Карпинск, Карталы, Касли, Катав-Ивановск, Качканар, Кашира, Кизел, Кингисепп, Кинель, Кириши, Кировград, Кировск, Кисловодск, Клин, Коломна, Колывань, Кольцово, Коммунар, Константиновск, Копейск, Кореновск, Коркино, Королёв, Кострома, Котельники, Котлас, Красноармейск, Красновишерск, Красногорск, Красное Село, Краснозаводск, Краснознаменск, Краснокамск, Краснообск, Краснотурьинск, Красноуральск, Красноуфимск, Красный Сулин, Кронштадт, Кропоткин, Крымск, Кстово, Кубинка, Кудымкар, Куйбышев, Кулебаки, Кулунда, Кунгур, Курган, Курганинск, Куровское, Куртамыш, Куса, Кушва, Кыштым, Лабинск, Лаишево, Лангепас, Ленинск-Кузнецкий, Лермонтов, Лесной, Ликино-Дулёво, Липецк, Лиски, Лобня, Лодейное Поле, Ломоносов, Лосино-Петровский, Луга, Лукоянов, Луховицы, Лысково, Лысьва, Лыткарино, Любань, Люберцы, Лянтор, Магас, Магнитогорск, Майкоп, Маслянино, Миасс, Миллерово, Миньяр, Мирный, Михайловск, Можайск, Моздок, Морозовск, Мостовской, Мурманск, Муром, Мытищи, Навашино, Надым, Называевск, Наро-Фоминск, Невинномысск, Невьянск, Нефтегорск, Нефтекумск, Нижние Серги, Нижний Тагил, Нижняя Салда, Нижняя Тура, Новая Ладога, Новая Ляля, Новая Усмань, Новоалтайск, Нововоронеж, Новокубанск, Новокуйбышевск, Новопавловск, Новоуральск, Новохопёрск, Новочебоксарск, Новочеркасск, Новошахтинск, Ногинск, Нытва, Нягань, Нязепетровск, Обнинск, Обь, Одинцово, Озерск, Озёры, Октябрьск, Орехово-Зуево, Оса, Острогожск, Отрадное, Отрадный, Оханск, Очёр, Павловский Посад, Павлово, Павловск, Первоуральск, Пересвет, Петергоф, Пикалево, Пласт, Поворино, Подольск, Подпорожье, Полевской, Полысаево, Похвистнево, Приморск, Приморско-Ахтарск, Приозерск, Прокопьевск, Пролетарск, Протвино, Прохладный, Псков, Пушкин, Пушкино, Пущино, Пыть-Ях, Радужный, Раменское, Ревда, Реж, Реутов, Россошь, Рошаль, Рубцовск, Руза, Саки, Сальск, Саранск, Саров, Сатка, Светлоград, Светогорск, Северодвинск, Североуральск, Северск, Северская, Семёнов, Семикаракорск, Семилуки, Серебряные Пруды, Сергач, Сергиев Посад, Серов, Серпухов, Сертолово, Сестрорецк, Сим, Славгород, Славянск-на-Кубани, Сланцы, Снежинск, Советск, Соликамск, Солнечногорск, Сосновый Бор, Среднеуральск, Старая Купавна, Старый Оскол, Стрежевой, Ступино, Сухой Лог, Сызрань, Сысерть, Тавда, Таганрог, Тазовский, Талдом, Талица, Тамбов, Тара, Тарко-Сале, Татарск, Тверь, Темрюк, Тетюши, Тимашёвск, Тихвин, Тихорецк, Тобольск, Тогучин, Тосно, Трёхгорный, Троицк, Туринск, Тюкалинск, Урай, Урень, Усолье, Усть-Джегута, Усть-Катав, Усть-Лабинск, Фрязино, Хадыженск, Химки, Хотьково, Цимлянск, Чайковский, Чапаевск, Чебаркуль, Чердынь, Черепаново, Черноголовка, Чернушка, Чехов, Чистополь, Чкаловск, Чулым, Чусовой, Шадринск, Шатура, Шаховская, Шахты, Шахунья, Шлиссельбург, Шумиха, Щелково, Щербинка, Щучье, Электрогорск, Электросталь, Электроугли, Югорск, Южноуральск, Юрюзань, Яблоновский, Ялуторовск, Яранск, Яхрома"
+};
+
+/* Ориентиры: Москва → город, 50 кг и 0,5 м³, I кв. 2026 (Sostav; СДЭК и Байкал до Екатеринбурга — TenChat) */
+const PRICES = {}; /* ориентиры для 20 кг и 0,2 м³ добавить, когда будут цифры */
+const PRICES_50KG = {
+  "казань":{kit:"от 650 ₽, 2 дня", dl:"~890 ₽, 2–3 дня", cdek:"от 1500 ₽, 1–2 дня"},
+  "екатеринбург":{kit:"от 730 ₽, 3 дня", pek:"1012 ₽, 5 дней", dl:"от 1088 ₽, до 6 дней", baikal:"1143 ₽, 4 дня", cdek:"от 870 ₽, 4 дня"},
+  "тюмень":{kit:"от 850 ₽, 4 дня"},
+  "новосибирск":{kit:"~1020 ₽, 4–5 дней", pek:"1150 ₽, 7–8 дней", dl:"1250 ₽, 8 дней", nrg:"1100 ₽, 6–7 дней"},
+  "краснодар":{kit:"800 ₽, 3–4 дня", pek:"950 ₽, 4 дня", dl:"1100 ₽, 4 дня", baikal:"от 800 ₽, 3–4 дня"},
+  "омск":{kit:"от 950 ₽, 4–5 дней", pek:"1100 ₽, 6 дней", dl:"1200 ₽, 7 дней", nrg:"1050 ₽, 6 дней", cdek:"от 1500 ₽, 5 дней"},
+  "красноярск":{kit:"1150 ₽, 6–7 дней", pek:"1350 ₽, 8 дней", dl:"1450 ₽, 9 дней", baikal:"1400 ₽, 8 дней"},
+  "владивосток":{kit:"1850 ₽, 15–18 дней", pek:"2200 ₽, 20 дней", dl:"2500 ₽, 20 дней", nrg:"1900 ₽, 18–20 дней", jde:"~1600 ₽, до 30 дней (ж/д)"}
+};
+
+const CRIMEA = new Set(["симферополь","ялта","евпатория","севастополь","джанкой","керчь","феодосия","судак","алушта","армянск","бахчисарай","красноперекопск","черноморское","саки","белогорск","алупка","балаклава","форос"]);
+const norm = s => s.toLowerCase().replace(/ё/g,"е").replace(/[\s\-–]+/g," ").replace(/[«»"().,]/g,"").trim();
+
+const index = {}; // norm city -> {display, set of tk}
+for (const [tk, str] of Object.entries(LISTS)) {
+  for (const raw of str.split(",")) {
+    const name = raw.trim(); if (!name) continue;
+    const k = norm(name);
+    if (!index[k]) index[k] = {display:name, tks:new Set()};
+    index[k].tks.add(tk);
+  }
+}
+for (const [k, p] of Object.entries(PRICES_50KG)) {
+  if (!index[k]) index[k] = {display:k[0].toUpperCase()+k.slice(1), tks:new Set()};
+}
+const allKeys = Object.keys(index).sort((a,b)=>index[a].display.localeCompare(index[b].display,"ru"));
+
+const $ = id => document.getElementById(id);
+const input = $("city"), sug = $("sug"), result = $("result");
+let active = -1;
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+function card(tk, pill, pillCls, note, price){
+  const t = TK[tk];
+  const link = t.site ? `<a href="${t.site}" target="_blank" rel="noopener">Сайт: ${t.label} →</a>` : "";
+  const ic = `<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="6" width="12" height="9" rx="1.5"/><path d="M13.5 9h4l3 3.5V15h-7"/><circle cx="6" cy="17" r="1.8"/><circle cx="17" cy="17" r="1.8"/></svg></span>`;
+  return `<div class="card"><div class="top">${ic}<b>${t.name}</b><span class="pill ${pillCls}">${pill}</span></div>${note?`<div class="note">${note}</div>`:""}${link}</div>`;
+}
+
+function show(query){
+  const k = norm(query);
+  if (!k){ result.innerHTML=""; return; }
+  const hit = index[k];
+  const display = hit ? hit.display : query.trim();
+  const prices = PRICES[k] || {};
+  const yes = new Set(hit ? hit.tks : []);
+  for (const tk of Object.keys(PRICES_50KG[k] || {})) if (tk!=="cdek") yes.add(tk);
+  const order = ["kit","pek","dl","nrg","baikal","jde","magic","vic"];
+  const yesList = order.filter(t=>yes.has(t));
+  const checkList = ["dl","nrg","baikal"].filter(t=>!yes.has(t));
+  let html = `<h2 class="rhead"><span>${esc(display)}</span>: кто довезёт</h2>`;
+  if (yesList.length){
+    html += `<div class="group"><h3>Возят в этот город</h3><div class="cards">${yesList.map(t=>card(t,"есть в списке","ok",(t==="vic"&&CRIMEA.has(k))?"Грузы в Крым Виктория не страхует.":"")).join("")}</div></div>`;
+  } else {
+    html += `<div class="empty">Этого города нет в списках ПЭК, КИТ, ЖелДорЭкспедиции, Мейджик Транс и Виктории. Проверьте его на сайтах ТК ниже.</div>`;
+  }
+  html += `<div class="group"><h3>Проверьте на сайте ТК</h3><div class="cards">`+
+    card("cdek","почти везде","warn","Возит в 45 000 населённых пунктов. Проверьте пункт выдачи рядом с вами.")+
+    checkList.map(t=>card(t,"проверьте","warn","Проверьте свой город на сайте ТК.")).join("")+
+    `</div></div>`;
+  result.innerHTML = html;
+}
+
+function renderSug(){
+  const k = norm(input.value);
+  active = -1;
+  if (k.length < 2){ sug.hidden = true; input.setAttribute("aria-expanded","false"); return; }
+  const starts = allKeys.filter(x=>x.startsWith(k));
+  const contains = allKeys.filter(x=>!x.startsWith(k) && x.includes(k));
+  const list = starts.concat(contains).slice(0,8);
+  if (!list.length){ sug.hidden = true; input.setAttribute("aria-expanded","false"); return; }
+  sug.innerHTML = list.map((x,i)=>`<li><button type="button" role="option" data-k="${esc(x)}" id="opt${i}">${esc(index[x].display)}</button></li>`).join("");
+  sug.hidden = false; input.setAttribute("aria-expanded","true");
+}
+
+function pick(k){
+  input.value = index[k] ? index[k].display : k;
+  sug.hidden = true; input.setAttribute("aria-expanded","false");
+  show(input.value);
+}
+
+input.addEventListener("input", renderSug);
+input.addEventListener("keydown", e=>{
+  const opts = [...sug.querySelectorAll("button")];
+  if (sug.hidden || !opts.length) return;
+  if (e.key==="ArrowDown"||e.key==="ArrowUp"){
+    e.preventDefault();
+    active = (active + (e.key==="ArrowDown"?1:-1) + opts.length) % opts.length;
+    opts.forEach((o,i)=>o.setAttribute("aria-selected", i===active?"true":"false"));
+  } else if (e.key==="Enter" && active>=0){
+    e.preventDefault(); pick(opts[active].dataset.k);
+  } else if (e.key==="Escape"){ sug.hidden = true; }
+});
+sug.addEventListener("click", e=>{ const b = e.target.closest("button"); if (b) pick(b.dataset.k); });
+document.addEventListener("click", e=>{ if (!e.target.closest(".search")) sug.hidden = true; });
+$("form").addEventListener("submit", e=>{ e.preventDefault(); sug.hidden = true; show(input.value); });
+document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click", ()=>{ input.value = c.dataset.city; sug.hidden = true; show(c.dataset.city); }));
+
+input.value = "Новосибирск";
+show("Новосибирск");
+</script>
+
+</body>
+</html>
